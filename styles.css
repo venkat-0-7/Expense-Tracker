@@ -327,5 +327,26 @@ footer p {
     max-width: 600px;
     margin: 0 auto;
 }
+.delete-btn {
+    background-color: #d63031; /* Red color for delete actions */
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    margin-top: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.3s ease;
+}
+
+.delete-btn i {
+    margin-right: 5px;
+}
+
+.delete-btn:hover {
+    background-color: #e17055;
+}
 
 
