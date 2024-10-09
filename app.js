@@ -1,4 +1,3 @@
-
 const entryForm = document.getElementById('entry-form');
 const entriesBody = document.getElementById('entries-body');
 const totalIncomeEl = document.getElementById('total-income');
@@ -10,9 +9,7 @@ const closeModalBtn = document.querySelector('.close-button');
 const editForm = document.getElementById('edit-form');
 
 const financeChartCtx = document.getElementById('finance-chart').getContext('2d');
-const deleteExpensesBtn = document.getElementById('delete-expenses-btn');
 let entries = JSON.parse(localStorage.getItem('financeEntries')) || [];
-
 let financeChart = new Chart(financeChartCtx, {
     type: 'pie',
     data: {
@@ -20,8 +17,8 @@ let financeChart = new Chart(financeChartCtx, {
         datasets: [{
             data: [0, 0],
             backgroundColor: [
-                '#00b894',
-                '#d63031'  
+                '#00b894', // Green for Income
+                '#d63031'  // Red for Expenses
             ],
             hoverBackgroundColor: [
                 '#55efc4',
@@ -45,7 +42,6 @@ let financeChart = new Chart(financeChartCtx, {
 function saveEntries() {
     localStorage.setItem('financeEntries', JSON.stringify(entries));
 }
-
 function updateDashboard() {
     let totalIncome = 0;
     let totalExpenses = 0;
@@ -61,46 +57,65 @@ function updateDashboard() {
     totalIncomeEl.textContent = `${totalIncome.toFixed(2)}Rs`;
     totalExpensesEl.textContent = `${totalExpenses.toFixed(2)}Rs`;
     balanceEl.textContent = `${(totalIncome - totalExpenses).toFixed(2)}Rs`;
+
+    // Update Chart.js data
     financeChart.data.datasets[0].data = [totalIncome, totalExpenses];
     financeChart.update();
 }
 function renderEntries() {
+    // Clear existing entries
     entriesBody.innerHTML = '';
 
+    // Sort entries by date descending
     const sortedEntries = entries.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     sortedEntries.forEach(entry => {
         const tr = document.createElement('tr');
+
+        // Type
         const typeTd = document.createElement('td');
         typeTd.textContent = capitalizeFirstLetter(entry.type);
         typeTd.classList.add(entry.type === 'income' ? 'income' : 'expense');
         tr.appendChild(typeTd);
+
+        // Category
         const categoryTd = document.createElement('td');
         categoryTd.textContent = entry.category;
         tr.appendChild(categoryTd);
+
+        // Amount
         const amountTd = document.createElement('td');
         amountTd.textContent = `${parseFloat(entry.amount).toFixed(2)}Rs`;
         amountTd.classList.add(entry.type === 'income' ? 'income' : 'expense');
         tr.appendChild(amountTd);
 
+        // Date
         const dateTd = document.createElement('td');
         dateTd.textContent = formatDate(entry.date);
         tr.appendChild(dateTd);
+
+        // Description
         const descTd = document.createElement('td');
         descTd.textContent = entry.description;
         tr.appendChild(descTd);
+
+        // Actions
         const actionsTd = document.createElement('td');
         actionsTd.classList.add('actions');
 
+        // Edit Button
         const editBtn = document.createElement('button');
         editBtn.innerHTML = '<i class="fas fa-edit"></i>';
         editBtn.title = 'Edit Entry';
+        editBtn.classList.add('edit-btn');
         editBtn.addEventListener('click', () => openEditModal(entry.id));
         actionsTd.appendChild(editBtn);
 
+        // Delete Button
         const deleteBtn = document.createElement('button');
         deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
         deleteBtn.title = 'Delete Entry';
+        deleteBtn.classList.add('delete-btn');
         deleteBtn.addEventListener('click', () => deleteEntry(entry.id));
         actionsTd.appendChild(deleteBtn);
 
@@ -111,7 +126,6 @@ function renderEntries() {
 
     updateDashboard();
 }
-
 function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
@@ -119,8 +133,6 @@ function formatDate(dateStr) {
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return new Date(dateStr).toLocaleDateString(undefined, options);
 }
-
-
 function addEntry(e) {
     e.preventDefault();
 
@@ -147,9 +159,9 @@ function addEntry(e) {
     saveEntries();
     renderEntries();
 
+    // Reset form
     entryForm.reset();
 }
-
 function deleteEntry(id) {
     if (confirm('Are you sure you want to delete this entry?')) {
         entries = entries.filter(entry => entry.id !== id);
@@ -157,22 +169,11 @@ function deleteEntry(id) {
         renderEntries();
     }
 }
-
-function deleteAllExpenses() {
-    if (confirm('Are you sure you want to delete all expense entries? This action cannot be undone.')) {
-        entries = entries.filter(entry => entry.type !== 'expense');
-        
-        saveEntries();
-        
-        
-        renderEntries();
-        alert('All expense entries have been deleted successfully.');
-    }
-}
-
 function openEditModal(id) {
     const entry = entries.find(entry => entry.id === id);
     if (!entry) return;
+
+    // Populate form with entry data
     document.getElementById('edit-id').value = entry.id;
     document.getElementById('edit-type').value = entry.type;
     document.getElementById('edit-category').value = entry.category;
@@ -180,14 +181,13 @@ function openEditModal(id) {
     document.getElementById('edit-date').value = entry.date;
     document.getElementById('edit-description').value = entry.description;
 
+    // Show modal
     editModal.style.display = 'block';
 }
-
 function closeEditModal() {
     editModal.style.display = 'none';
     editForm.reset();
 }
-
 function updateEntry(e) {
     e.preventDefault();
 
@@ -197,12 +197,10 @@ function updateEntry(e) {
     const amount = document.getElementById('edit-amount').value;
     const date = document.getElementById('edit-date').value;
     const description = document.getElementById('edit-description').value.trim();
-
     if (!category || !amount || !date) {
         alert('Please fill in all required fields.');
         return;
     }
-
     const entryIndex = entries.findIndex(entry => entry.id === id);
     if (entryIndex === -1) return;
 
@@ -217,17 +215,16 @@ function updateEntry(e) {
 
     saveEntries();
     renderEntries();
-
     closeEditModal();
 }
-
 entryForm.addEventListener('submit', addEntry);
+editForm.addEventListener('submit', updateEntry);
 closeModalBtn.addEventListener('click', closeEditModal);
 window.addEventListener('click', (e) => {
     if (e.target === editModal) {
         closeEditModal();
     }
 });
-editForm.addEventListener('submit', updateEntry);
-deleteExpensesBtn.addEventListener('click', deleteAllExpenses);
+
 renderEntries();
+
